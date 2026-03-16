@@ -1,15 +1,27 @@
 import { Container, Col, Image, Row, Card, Button } from "react-bootstrap"
 import bigStar from '../assets/bigStar.png'
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import {useParams} from 'react-router-dom'
-import { fetchOneDevice } from "../http/deviceApi"
+import { addToBasket, fetchOneDevice } from "../http/deviceApi"
+import { Context } from "../main"
+import { observer } from "mobx-react-lite"
 
-const DevicePage = () =>{
+const DevicePage = observer(() =>{
     const [device, setDevice] = useState({info :[]})
     const {id} = useParams()
+    const {user} = useContext(Context)
     useEffect(() => {
         fetchOneDevice(id).then(data => setDevice(data))
     }, [])
+
+    const addDeviceToBasket = async () =>{
+    try{
+        await addToBasket(device.id)
+        alert("Device added to basket")
+    }catch(e){
+        console.log(e)
+    }
+}
     
     return(
         <Container className="mt-3">
@@ -37,7 +49,7 @@ const DevicePage = () =>{
                     style={{width:300, height: 300, fontSize:32, border: '5px solid lightgray'}}
                 >
                     <h3>From: {device.price} $</h3>
-                    <Button variant={"outline-dark"}>Add to shopping cart</Button>
+                    <Button onClick={addDeviceToBasket} variant={"outline-dark"}>Add to shopping cart</Button>
                 </Card>
             </Col>
             </Row>
@@ -51,6 +63,6 @@ const DevicePage = () =>{
             </Row>
         </Container>
     )
-}
+})
 
 export default DevicePage
