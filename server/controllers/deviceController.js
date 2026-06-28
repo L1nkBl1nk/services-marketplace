@@ -9,7 +9,12 @@ class DeviceController{
         try {
             let {name, price, brandId, typeId, info} = req.body
             const {img} = req.files
-            let fileName = uuid.v4() +'.jpg'
+            if(!img.mimetype || !img.mimetype.startsWith('image/')){
+                return next(ApiError.badRequest('Only image files are allowed'))
+            }
+            // keep the real extension (jpg/png/webp/…) so the browser renders it correctly
+            const ext = path.extname(img.name).toLowerCase() || '.jpg'
+            let fileName = uuid.v4() + ext
             await img.mv(path.resolve(__dirname, '..', 'static', fileName))
             const device = await Device.create({name, price, brandId, typeId, info, img: fileName})
 

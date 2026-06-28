@@ -15,7 +15,12 @@ const app = express()
 app.use(cors())
 app.use(express.json()) // для того чтоб мы парсили Json
 app.use('/static', express.static(path.resolve(__dirname, 'static')))
-app.use(fileUpload({}))
+app.use(fileUpload({
+    limits: { fileSize: 15 * 1024 * 1024 }, // 15 MB max
+    abortOnLimit: true,
+    createParentPath: true,
+    responseOnLimit: 'Image is too large (max 15 MB)'
+}))
 app.use('/api', router)
 
 
