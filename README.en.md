@@ -1,6 +1,11 @@
 # Services Marketplace
 
-Full-stack electronics online store. Device catalog with filtering by types and brands, user registration and authentication via JWT, shopping cart, ratings, and an admin panel for managing products.
+Full-stack electronics online store. Device catalog with filtering by types and brands, user registration and authentication via JWT, shopping cart, **Stripe checkout**, order history, and an admin panel for managing products.
+
+🔗 **[Live demo →](https://services-marketplace-three.vercel.app)**
+
+> Hosted on free tiers — the API may take ~30–50s to wake up on the first request.
+> To test payment, use Stripe test card `4242 4242 4242 4242`, any future expiry, any CVC/ZIP.
 
 ## Tech Stack
 
