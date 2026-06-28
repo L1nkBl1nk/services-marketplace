@@ -20,7 +20,8 @@ const Rating = sequelize.define('rating', {
 })
 
 const BasketDevice = sequelize.define('basket_device', {
-    id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true}
+    id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+    quantity: {type: DataTypes.INTEGER, allowNull: false, defaultValue: 1}
 })
 
 const Device = sequelize.define('device', {
@@ -51,6 +52,21 @@ const TypeBrand = sequelize.define('type_brand', {
     id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true}
 })
 
+const Order = sequelize.define('order', {
+    id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+    status: {type: DataTypes.STRING, allowNull: false, defaultValue: 'pending'}, // pending | paid
+    total: {type: DataTypes.FLOAT, allowNull: false, defaultValue: 0},
+    stripeSessionId: {type: DataTypes.STRING}
+})
+
+const OrderItem = sequelize.define('order_item', {
+    id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+    name: {type: DataTypes.STRING, allowNull: false},
+    price: {type: DataTypes.FLOAT, allowNull: false},
+    quantity: {type: DataTypes.INTEGER, allowNull: false, defaultValue: 1},
+    img: {type: DataTypes.STRING}
+})
+
 User.hasOne(Basket)
 Basket.belongsTo(User)
 
@@ -78,8 +94,17 @@ DeviceInfo.belongsTo(Device)
 Type.belongsToMany(Brand, {through: TypeBrand })
 Brand.belongsToMany(Type, {through: TypeBrand })
 
+User.hasMany(Order)
+Order.belongsTo(User)
+
+Order.hasMany(OrderItem, {as: 'items', onDelete: 'CASCADE'})
+OrderItem.belongsTo(Order)
+
+Device.hasMany(OrderItem)
+OrderItem.belongsTo(Device)
+
 module.exports = {
-    User, 
+    User,
     Basket,
     BasketDevice,
     Device,
@@ -87,5 +112,7 @@ module.exports = {
     Brand,
     TypeBrand,
     Rating,
-    DeviceInfo
+    DeviceInfo,
+    Order,
+    OrderItem
 }

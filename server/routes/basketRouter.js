@@ -5,6 +5,7 @@ const authMiddleware = require('../middleware/authMiddleware')
 
 router.get('/', authMiddleware, basketController.getBasket)
 router.post('/', authMiddleware, basketController.addDevice)
+router.put('/:id', authMiddleware, basketController.updateQuantity)
 router.delete('/:id', authMiddleware, basketController.deleteDevice)
 
 

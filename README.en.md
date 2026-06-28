@@ -48,6 +48,9 @@ services-marketplace/
 - **Type** / **Brand** — categories and brands (many-to-many via **TypeBrand**)
 - **Rating** — device ratings left by users
 - **DeviceInfo** — device specs (`title`, `description`)
+- **BasketDevice** — cart line with a `quantity`
+- **Order** — `status` (`pending` / `paid`), `total`, `stripeSessionId`; belongs to **User**, has many **OrderItem**
+- **OrderItem** — snapshot of a purchased product: `name`, `price`, `quantity`, `img`
 
 ## Requirements
 
@@ -80,7 +83,16 @@ DB_PASSWORD=your_password
 DB_HOST=localhost
 DB_PORT=5432
 SECRET_KEY=your_secret_key
+
+# Stripe — use TEST keys from https://dashboard.stripe.com/test/apikeys
+STRIPE_SECRET_KEY=sk_test_xxx
+# Where the React client runs (for Stripe success/cancel redirects)
+CLIENT_URL=http://localhost:5173
+# Optional: public URL of this server, enables product images in Stripe Checkout
+# SERVER_URL=http://localhost:5000
 ```
+
+> A `server/.env.example` is included as a template.
 
 Create the database in PostgreSQL (the name must match `DB_NAME`):
 
@@ -154,9 +166,21 @@ Base prefix — `/api`.
 ### Basket — `/api/basket`
 | Method | Path | Description | Access |
 |--------|------|-------------|--------|
-| GET | `/` | Get the cart | Authenticated |
-| POST | `/` | Add a device | Authenticated |
+| GET | `/` | Get the cart (with quantities) | Authenticated |
+| POST | `/` | Add a device (increments quantity if already in cart) | Authenticated |
+| PUT | `/:id` | Update a line quantity (0 removes it) | Authenticated |
 | DELETE | `/:id` | Remove a device from the cart | Authenticated |
+
+### Orders & Checkout — `/api/order`
+| Method | Path | Description | Access |
+|--------|------|-------------|--------|
+| POST | `/checkout` | Create an order from the cart and start a Stripe Checkout session; returns `{ url }` | Authenticated |
+| GET | `/confirm?session_id=...` | Verify payment on return from Stripe, mark order paid, empty the cart | Authenticated |
+| GET | `/` | List the current user's orders with items | Authenticated |
+
+**Payment flow:** the client calls `POST /api/order/checkout`, receives a Stripe Checkout `url`, and redirects the browser there. After paying, Stripe redirects back to `/checkout/success?session_id=...`, where the client calls `GET /api/order/confirm` to finalise the order.
+
+In Stripe **test mode**, use card `4242 4242 4242 4242`, any future expiry, any CVC and ZIP.
 
 Protected endpoints require the header:
 

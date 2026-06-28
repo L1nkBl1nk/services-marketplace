@@ -54,4 +54,9 @@ export const deleteBasketDevice = async (id) => {
     return data
 }
 
+export const updateBasketQuantity = async (id, quantity) => {
+    const {data} = await $authHost.put(`api/basket/${id}`, {quantity})
+    return data
+}
+
 

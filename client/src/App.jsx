@@ -14,12 +14,16 @@ const App = observer(() => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() =>{
-    
+
       check().then(data => {
-      user.setUser(data)
-      user.setIsAuth(true)
-      }). finally(() => setLoading(false))
-    
+        user.setUser(data)
+        user.setIsAuth(true)
+      }).catch(() => {
+        // No/expired token — stay logged out, drop the stale token
+        user.setIsAuth(false)
+        localStorage.removeItem('token')
+      }).finally(() => setLoading(false))
+
   }, [])
 
     

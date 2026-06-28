@@ -4,7 +4,7 @@ import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import { Button, Container } from 'react-bootstrap';
 import  {Link, NavLink } from 'react-router-dom';
-import { ADMIN_ROUTE, BASKET_ROUTE, LOGIN_ROUTE, SHOP_ROUTE } from "../utils/consts";
+import { ADMIN_ROUTE, BASKET_ROUTE, LOGIN_ROUTE, ORDERS_ROUTE, SHOP_ROUTE } from "../utils/consts";
 import { observer } from "mobx-react-lite";
 import {useNavigate} from 'react-router-dom'
 
@@ -13,26 +13,29 @@ const Navbarchik= observer(() =>{
     const {user} = useContext(Context)
 
     const logOut =()=>{
-      user.setUser=({})
+      user.setUser({})
       user.setIsAuth(false)
+      localStorage.removeItem('token')
+      navigate(SHOP_ROUTE)
     }
     return(
         <Navbar bg="dark" data-bs-theme="dark">
           <Container>
           <NavLink style={{color:"white"}} to={SHOP_ROUTE}>StoreName</NavLink>
           {user.isAuth ? <Nav className="ms-auto" style={{color: 'white'}}>
-            <Button variant="outline-light" onClick={logOut}>Log out</Button>
+            <Button variant="outline-light" onClick={() => navigate(ORDERS_ROUTE)}>My Orders</Button>
             <Button variant="outline-light" onClick={() => navigate(ADMIN_ROUTE)} className="ms-2">Admin panel</Button>
             <Button variant="outline-light" onClick={() => navigate(BASKET_ROUTE)} className="ms-2">Shopping Cart</Button>
+            <Button variant="outline-light" onClick={logOut} className="ms-2">Log out</Button>
           </Nav> :
           <Nav className="ms-auto" style={{color: 'white'}}>
             <Button variant="outline-light" onClick={() => navigate(LOGIN_ROUTE)}>Log in</Button>
           </Nav>
           }
-          
+
        </Container>
       </Navbar>
-    
+
     )
 })
 
