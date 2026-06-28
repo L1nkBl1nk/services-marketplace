@@ -1,5 +1,5 @@
 const Router = require('express')
-const basketController = require('../controllers/BasketController')
+const basketController = require('../controllers/basketController')
 const router = new Router()
 const authMiddleware = require('../middleware/authMiddleware')
 
