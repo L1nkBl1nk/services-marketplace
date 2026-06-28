@@ -1,49 +1,34 @@
-import { useState } from 'react'
-import {Modal, Button, Form} from 'react-bootstrap'
-import { createType } from '../../http/deviceApi'
+import { useState } from "react"
+import { createType } from "../../http/deviceApi"
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
-const CreateType = ({show, onHide}) =>{
+const CreateType = () => {
+  const [open, setOpen] = useState(false)
+  const [value, setValue] = useState("")
 
-  const [value, setValue] = useState('')
-
-  const addType = () =>{
-    if(!value){
-      alert("Введите название типа")
-      return
-    }
-    createType({name: value})
-    .then(data => {
-      setValue('')
-      onHide()
-    })
+  const addType = () => {
+    if (!value.trim()) return alert("Enter a category name")
+    createType({ name: value }).then(() => { setValue(""); setOpen(false) })
   }
 
-     return(
-     <Modal
-      show={show}
-      onHide={onHide}
-      centered
-    >
-      <Modal.Header closeButton>
-        <Modal.Title id="contained-modal-title-vcenter">
-          Add new type
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form>
-            <Form.Control
-            value = {value}
-            onChange={e => setValue(e.target.value)} 
-              placeholder="Add new type"
-            />
-        </Form>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant='outline-danger' onClick={onHide}>Close</Button>
-        <Button variant='outline-success' onClick={addType}>Add</Button>
-      </Modal.Footer>
-    </Modal>
-     )
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="w-full">Create category</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader><DialogTitle>New category</DialogTitle></DialogHeader>
+        <Input value={value} onChange={e => setValue(e.target.value)} placeholder="e.g. Laptops"
+          onKeyDown={e => e.key === "Enter" && addType()} />
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={addType}>Add</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
 }
 
 export default CreateType

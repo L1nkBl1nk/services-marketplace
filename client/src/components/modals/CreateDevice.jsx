@@ -1,143 +1,117 @@
-import { useContext, useState, useEffect } from 'react'
-import {Modal, Button, Form, Dropdown, Row, Col} from 'react-bootstrap'
-import { Context } from '../../main'
-import { createDevice, fetchBrands, fetchTypes } from '../../http/deviceApi'
-import { observer } from 'mobx-react-lite'
+import { useContext, useState, useEffect } from "react"
+import { Context } from "../../main"
+import { createDevice, fetchBrands, fetchTypes } from "../../http/deviceApi"
+import { observer } from "mobx-react-lite"
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Trash2, Plus } from "lucide-react"
+import { cn } from "@/lib/utils"
 
-const CreateDevice = observer(({show, onHide}) =>{
-    const {device} = useContext(Context)
-    
-    const [info,setInfo] = useState([])
-    const [name, setName] = useState('')
-    const [price, setPrice] = useState(0)
-    const [file, setFile] = useState(null)
+const selectClass = "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 
-    useEffect(() =>{
-            fetchTypes().then(data => device.setTypes(data))
-            fetchBrands().then(data => device.setBrands(data))
-        },[])
+const CreateDevice = observer(() => {
+  const { device } = useContext(Context)
+  const [open, setOpen] = useState(false)
+  const [info, setInfo] = useState([])
+  const [name, setName] = useState("")
+  const [price, setPrice] = useState(0)
+  const [file, setFile] = useState(null)
 
-    const addInfo = () =>{
-        setInfo([...info,{title: '', description: '', number: Date.now()}])
+  useEffect(() => {
+    if (!open) return
+    fetchTypes().then(data => device.setTypes(data))
+    fetchBrands().then(data => device.setBrands(data))
+  }, [open])
+
+  const addInfo = () => setInfo([...info, { title: "", description: "", number: Date.now() }])
+  const removeInfo = (number) => setInfo(info.filter(i => i.number !== number))
+  const changeInfo = (key, value, number) => setInfo(info.map(i => i.number === number ? { ...i, [key]: value } : i))
+
+  const addDevice = () => {
+    if (!name || !file || !device.selectedType.id || !device.selectedBrand.id) {
+      return alert("Fill name, price, image, category and brand")
     }
-    const removeInfo = (number) =>{
-        setInfo(info.filter(i => i.number !== number))
-    }
+    const formData = new FormData()
+    formData.append("name", name)
+    formData.append("price", `${price}`)
+    formData.append("img", file)
+    formData.append("brandId", device.selectedBrand.id)
+    formData.append("typeId", device.selectedType.id)
+    formData.append("info", JSON.stringify(info))
+    createDevice(formData).then(() => {
+      setName(""); setPrice(0); setFile(null); setInfo([]); setOpen(false)
+    })
+  }
 
-    const changeInfo = (key, value, number) =>{
-         setInfo(info.map( i => i.number ===number ? {...i, [key] : value} : i))
-    }
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button className="w-full">Add product</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>New product</DialogTitle></DialogHeader>
 
-    const selectFile = e =>{
-        setFile(e.target.files[0])
-    }
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Category</Label>
+              <select className={selectClass} value={device.selectedType.id || ""}
+                onChange={e => device.setSelectedType(device.types.find(t => t.id === Number(e.target.value)) || {})}>
+                <option value="">Choose…</option>
+                {device.types.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Brand</Label>
+              <select className={selectClass} value={device.selectedBrand.id || ""}
+                onChange={e => device.setSelectedBrand(device.brands.find(b => b.id === Number(e.target.value)) || {})}>
+                <option value="">Choose…</option>
+                {device.brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+            </div>
+          </div>
 
-    const addDevice =()=>{
-        const formData = new FormData()
-        formData.append('name', name)
-        formData.append('price', `${price}`)
-        formData.append('img', file)
-        formData.append('brandId', device.selectedBrand.id)
-        formData.append('typeId', device.selectedType.id)
-        formData.append('info', JSON.stringify(info))
+          <div className="space-y-1.5">
+            <Label>Name</Label>
+            <Input value={name} onChange={e => setName(e.target.value)} placeholder="Device name" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Price ($)</Label>
+            <Input type="number" value={price} onChange={e => setPrice(Number(e.target.value))} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Image</Label>
+            <Input type="file" accept="image/*" onChange={e => setFile(e.target.files[0])} />
+          </div>
 
-        createDevice(formData).then(data => onHide())
-    }
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <Label>Specifications</Label>
+              <Button type="button" variant="outline" size="sm" onClick={addInfo}><Plus className="h-3 w-3" /> Add</Button>
+            </div>
+            <div className="space-y-2">
+              {info.map(i => (
+                <div key={i.number} className="flex gap-2">
+                  <Input value={i.title} onChange={e => changeInfo("title", e.target.value, i.number)} placeholder="Title" />
+                  <Input value={i.description} onChange={e => changeInfo("description", e.target.value, i.number)} placeholder="Description" />
+                  <Button type="button" variant="ghost" size="icon" className={cn("shrink-0 text-muted-foreground hover:text-destructive")} onClick={() => removeInfo(i.number)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
-     return(
-     <Modal
-      show={show}
-      onHide={onHide}
-      centered
-    >
-      <Modal.Header closeButton>
-        <Modal.Title id="contained-modal-title-vcenter">
-          Add new device
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form>
-            <Dropdown className='mt-2 mb-2'>
-                <Dropdown.Toggle>{device.selectedType.name || "Choose type" }</Dropdown.Toggle>
-                <Dropdown.Menu>{device.types.map(type=>(
-                    <Dropdown.Item 
-                        onClick={() => device.setSelectedType(type)} 
-                        key={type.id}
-                        >
-                            {type.name}
-                        </Dropdown.Item>
-                ))}</Dropdown.Menu>
-            </Dropdown>
-            <Dropdown className='mt-2 mb-2'>
-                <Dropdown.Toggle>{device.selectedBrand.name || "Choose brand" }</Dropdown.Toggle>
-                <Dropdown.Menu>{device.brands.map(brand=>(
-                    <Dropdown.Item 
-                        onClick={() => device.setSelectedBrand(brand)} 
-                        key={brand.id}
-                    >
-                        {brand.name}
-                    </Dropdown.Item>
-                ))}</Dropdown.Menu>
-            </Dropdown>
-            <Form.Control
-                value={name}
-                onChange={e => setName(e.target.value)}
-                className='mt-3' 
-                placeholder='Device name...'
-            />
-            <Form.Control
-                value={price}
-                onChange={e => setPrice(Number(e.target.value))}
-                className='mt-3' 
-                placeholder='Device price...'
-                type='number'
-            />
-            <Form.Control
-                className='mt-3' 
-                type='file'
-                onChange={selectFile}
-            />
-            <hr/>
-            <Button 
-                variant='outline-dark'
-                onClick={addInfo}
-            > 
-                Add characteristics 
-            </Button>
-            {info.map(i => (
-                <Row className='mt-4' key={i.number}>
-                    <Col md={4}>
-                        <Form.Control
-                            value={i.title}
-                            onChange={(e) => changeInfo('title', e.target.value, i.number)} 
-                            placeholder='title...'
-                        />
-                    </Col>
-                    <Col md={4}>  
-                        <Form.Control 
-                            value={i.description}
-                            onChange={(e) => changeInfo('description', e.target.value, i.number)}
-                            placeholder='description...'
-                        />
-                    </Col>  
-                    <Col md={4}>  
-                        <Button
-                            onClick={() => removeInfo(i.number)} 
-                            variant='outline-danger'
-                        >
-                            Delete
-                        </Button>
-                    </Col>  
-                </Row>
-            ))}
-        </Form>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant='outline-danger' onClick={onHide}>Close</Button>
-        <Button variant='outline-success' onClick={addDevice}>Add</Button>
-      </Modal.Footer>
-    </Modal>
-     )
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={addDevice}>Add product</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
 })
 
 export default CreateDevice

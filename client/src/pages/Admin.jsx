@@ -1,43 +1,45 @@
-import { Container, Button } from "react-bootstrap"
 import CreateType from "../components/modals/CreateType"
-import CreateBrand from '../components/modals/CreateBrand'
-import CreateDevice from '../components/modals/CreateDevice'
-import { useState } from "react"
+import CreateBrand from "../components/modals/CreateBrand"
+import CreateDevice from "../components/modals/CreateDevice"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Tag, Bookmark, PackagePlus } from "lucide-react"
 
-const Admin = () =>{
-    const [brandVisible, setBrandVisible] = useState(false)
-    const [typeVisible, setTypeVisible] = useState(false)
-    const [deviceVisible, setDeviceVisible] = useState(false)
-    return(
-        <Container className="d-flex flex-column">
-            <Button 
-                variant="outline-dark" 
-                className="mt-4 p-2"
-                onClick={() => setTypeVisible(true)}
-            >
-                Create type
-            </Button>
-            <Button 
-                variant="outline-dark" 
-                className="mt-4 p-2"
-                onClick={() => setBrandVisible(true)}
-            >
-                Create brand
-            </Button>
-            <Button 
-                variant="outline-dark" 
-                className="mt-4 p-2"
-                onClick={() => setDeviceVisible(true)}
-            >
-                Create device
-            </Button>
-            <CreateBrand show={brandVisible} onHide={() => setBrandVisible(false)}/>
-            <CreateDevice show={deviceVisible} onHide={() => setDeviceVisible(false)}/>
-            <CreateType show={typeVisible} onHide={() => setTypeVisible(false)}/>
-        </Container>
-        
+const Admin = () => {
+  return (
+    <div className="container py-8">
+      <h1 className="mb-1 text-2xl font-bold tracking-tight">Admin panel</h1>
+      <p className="mb-6 text-muted-foreground">Manage your catalog — create categories, brands and products.</p>
 
-    )
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <Tag className="h-6 w-6 text-muted-foreground" />
+            <CardTitle className="mt-2">Categories</CardTitle>
+            <CardDescription>Product types like Laptops, Phones…</CardDescription>
+          </CardHeader>
+          <CardContent><CreateType /></CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <Bookmark className="h-6 w-6 text-muted-foreground" />
+            <CardTitle className="mt-2">Brands</CardTitle>
+            <CardDescription>Manufacturers like Apple, Samsung…</CardDescription>
+          </CardHeader>
+          <CardContent><CreateBrand /></CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <PackagePlus className="h-6 w-6 text-muted-foreground" />
+            <CardTitle className="mt-2">Products</CardTitle>
+            <CardDescription>Add a new device with image &amp; specs.</CardDescription>
+          </CardHeader>
+          <CardContent><CreateDevice /></CardContent>
+        </Card>
+      </div>
+    </div>
+  )
 }
 
 export default Admin

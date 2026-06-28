@@ -1,82 +1,70 @@
-import { Container, Form, Card, Button, Row  } from "react-bootstrap"
-import {NavLink, useLocation, useNavigate} from 'react-router-dom'
-import {LOGIN_ROUTE, REGISTRATION_ROUTE, SHOP_ROUTE} from '../utils/consts'
+import { NavLink, useLocation, useNavigate } from "react-router-dom"
+import { LOGIN_ROUTE, REGISTRATION_ROUTE, SHOP_ROUTE } from "../utils/consts"
 import { login, registration } from "../http/userApi"
 import { useContext, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { Context } from "../main"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
-const Auth = observer(() =>{
-    const {user} = useContext(Context)
-    const navigate = useNavigate()
-    const location = useLocation()
-    const isLogin = location.pathname === LOGIN_ROUTE
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
+const Auth = observer(() => {
+  const { user } = useContext(Context)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const isLogin = location.pathname === LOGIN_ROUTE
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
 
-    const auth = async () =>{
-        let data
-        try{
-        if(isLogin){
-            data = await login(email, password)
-            console.log(data)
-        }else{
-            data = await registration(email, password)
-            console.log(data)
-        }
-            user.setUser(data)
-            user.setIsAuth(true)
-            navigate(SHOP_ROUTE)
-    }catch(e){
-        const message = e.response?.data?.message || e.message
-        alert(message)
-        }
+  const auth = async () => {
+    setLoading(true)
+    try {
+      const data = isLogin
+        ? await login(email, password)
+        : await registration(email, password)
+      user.setUser(data)
+      user.setIsAuth(true)
+      navigate(SHOP_ROUTE)
+    } catch (e) {
+      alert(e.response?.data?.message || e.message)
+    } finally {
+      setLoading(false)
     }
+  }
 
-    return(
-        <Container 
-            className="d-flex justify-content-center align-items-center "
-            style={{height: window.innerHeight -54}}
-        >
-            <Card style={{width:600}} className='p-5'>
-                <h2 className="m-auto">{isLogin ? "Login" : "Registration"}</h2>
-                <Form className="d-flex flex-column">
-                    <Form.Control 
-                        className="mt-2"
-                        placeholder="email@expample.com"
-                        value={email}
-                        onChange={e => setEmail(e.target.value)}
-                    />
-                    <Form.Control 
-                        className="mt-2"
-                        placeholder="password"
-                        value={password}
-                        onChange={e => setPassword(e.target.value)}
-                        type="password"
-                    />
-                </Form>
-                <Row className="d-flex justify-content-between mt-3">
-                    {isLogin?
-                    <div>
-                        Dont have an account? <NavLink to={REGISTRATION_ROUTE}>Create now!</NavLink>
-                    </div>
-                    :
-                    <div>
-                        Already have an account? <NavLink to={LOGIN_ROUTE}>Login now!</NavLink>
-                    </div>
-                    }
-                    <Button 
-                        className="mt-2 align-self-end" 
-                        variant={'outline-success'}
-                        onClick={auth}
-                        >
-                        {isLogin ? "Login" : "Create now!"}
-                    </Button>
-                </Row>
-            </Card>
-            
-        </Container>
-    )
+  return (
+    <div className="container flex min-h-[calc(100vh-9rem)] items-center justify-center py-10">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-2xl">{isLogin ? "Welcome back" : "Create your account"}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" placeholder="email@example.com" value={email} onChange={e => setEmail(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input id="password" type="password" placeholder="••••••••" value={password}
+              onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && auth()} />
+          </div>
+          <Button className="w-full" onClick={auth} disabled={loading}>
+            {loading ? "Please wait…" : isLogin ? "Sign in" : "Create account"}
+          </Button>
+          <p className="text-center text-sm text-muted-foreground">
+            {isLogin ? (
+              <>Don't have an account? <NavLink to={REGISTRATION_ROUTE} className="font-medium text-foreground underline-offset-4 hover:underline">Sign up</NavLink></>
+            ) : (
+              <>Already have an account? <NavLink to={LOGIN_ROUTE} className="font-medium text-foreground underline-offset-4 hover:underline">Sign in</NavLink></>
+            )}
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  )
 })
 
 export default Auth

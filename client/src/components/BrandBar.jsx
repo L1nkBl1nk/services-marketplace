@@ -1,28 +1,36 @@
 import { observer } from "mobx-react-lite"
 import { useContext } from "react"
 import { Context } from "../main"
-import { Row, Card } from "react-bootstrap"
+import { cn } from "@/lib/utils"
 
-const BrandBar = observer(() =>{
-    const {device} = useContext(Context)
-    return(
-        <Row className="d-flex">
-            {device.brands.map(brand => {
-                return (
-                    <Card
-                    style={{cursor: 'pointer', width:150}}
-                    key={brand.id}
-                    className="p-3 me-2"
-                    onClick={() => device.setSelectedBrand(brand)}
-                    border={brand.id === device.selectedBrand?.id ? 'danger' : 'light'}
-                    >
-                        {brand.name}      
-                    </Card>
-                )
-            })}
+const BrandBar = observer(() => {
+  const { device } = useContext(Context)
 
-        </Row>
-    )
+  const selectBrand = (brand) => {
+    if (device.selectedBrand.id === brand.id) device.setSelectedBrand({})
+    else device.setSelectedBrand(brand)
+  }
+
+  if (device.brands.length === 0) return null
+
+  return (
+    <div className="mb-6 flex flex-wrap gap-2">
+      {device.brands.map(brand => (
+        <button
+          key={brand.id}
+          onClick={() => selectBrand(brand)}
+          className={cn(
+            "rounded-full border px-4 py-1.5 text-sm transition-colors",
+            brand.id === device.selectedBrand?.id
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-input hover:bg-accent"
+          )}
+        >
+          {brand.name}
+        </button>
+      ))}
+    </div>
+  )
 })
 
 export default BrandBar
