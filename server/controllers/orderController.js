@@ -42,17 +42,23 @@ class OrderController {
             })))
 
             // Build Stripe line items
-            const line_items = basketDevices.map(item => ({
-                price_data: {
-                    currency: 'usd',
-                    product_data: {
-                        name: item.device.name,
-                        ...(SERVER_URL ? {images: [`${SERVER_URL}/static/${item.device.img}`]} : {})
+            const line_items = basketDevices.map(item => {
+                const img = item.device.img
+                const imgUrl = img && img.startsWith('http')
+                    ? img
+                    : (SERVER_URL && img ? `${SERVER_URL}/static/${img}` : null)
+                return {
+                    price_data: {
+                        currency: 'usd',
+                        product_data: {
+                            name: item.device.name,
+                            ...(imgUrl ? {images: [imgUrl]} : {})
+                        },
+                        unit_amount: Math.round(item.device.price * 100)
                     },
-                    unit_amount: Math.round(item.device.price * 100)
-                },
-                quantity: item.quantity
-            }))
+                    quantity: item.quantity
+                }
+            })
 
             const session = await stripe.checkout.sessions.create({
                 mode: 'payment',

@@ -1,8 +1,23 @@
 const uuid = require('uuid') //генерирует случайные рандомные idшники которые не будут повторяться
 const path = require('path')
+const cloudinary = require('cloudinary').v2
 
-const {Device, DeviceInfo} = require('../models/models') 
+const {Device, DeviceInfo} = require('../models/models')
 const ApiError = require('../error/ApiError')
+
+// Use Cloudinary when configured (durable cloud storage); otherwise fall back to local /static
+const cloudinaryEnabled = !!(
+    process.env.CLOUDINARY_CLOUD_NAME &&
+    process.env.CLOUDINARY_API_KEY &&
+    process.env.CLOUDINARY_API_SECRET
+)
+if (cloudinaryEnabled) {
+    cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+    })
+}
 
 class DeviceController{
     async create(req,res, next){
@@ -12,11 +27,21 @@ class DeviceController{
             if(!img.mimetype || !img.mimetype.startsWith('image/')){
                 return next(ApiError.badRequest('Only image files are allowed'))
             }
-            // keep the real extension (jpg/png/webp/…) so the browser renders it correctly
-            const ext = path.extname(img.name).toLowerCase() || '.jpg'
-            let fileName = uuid.v4() + ext
-            await img.mv(path.resolve(__dirname, '..', 'static', fileName))
-            const device = await Device.create({name, price, brandId, typeId, info, img: fileName})
+
+            let imgValue
+            if (cloudinaryEnabled) {
+                // upload the in-memory buffer to Cloudinary, store the permanent URL
+                const dataURI = `data:${img.mimetype};base64,${img.data.toString('base64')}`
+                const result = await cloudinary.uploader.upload(dataURI, { folder: 'volt' })
+                imgValue = result.secure_url
+            } else {
+                // local dev: save to /static, keep the real extension
+                const ext = path.extname(img.name).toLowerCase() || '.jpg'
+                imgValue = uuid.v4() + ext
+                await img.mv(path.resolve(__dirname, '..', 'static', imgValue))
+            }
+
+            const device = await Device.create({name, price, brandId, typeId, info, img: imgValue})
 
             if(info){
                 info = JSON.parse(info)
@@ -29,19 +54,17 @@ class DeviceController{
                 });
             }
 
-        
-            
             return res.json(device)
         }catch(e){
             next(ApiError.badRequest(e.message))
         }
     }
-    
+
     async getAll(req,res){
         let {brandId, typeId, limit, page} = req.query
         page = Number(page) || 1
         limit = Number(limit) || 9
-        let offset = page * limit - limit //отступ в 9 товаров 
+        let offset = page * limit - limit //отступ в 9 товаров
         let devices;
         if(!brandId && !typeId){
             devices = await Device.findAndCountAll({limit, offset})
@@ -65,9 +88,9 @@ class DeviceController{
 
         if(brandId && typeId){
             devices = await Device.findAndCountAll({
-                where: { 
-                    brandId: Number(brandId), 
-                    typeId: Number(typeId) 
+                where: {
+                    brandId: Number(brandId),
+                    typeId: Number(typeId)
                 },
                 limit,
                 offset
@@ -80,7 +103,7 @@ class DeviceController{
         const {id} = req.params
         const device = await Device.findOne(
             {
-                where: {id}, 
+                where: {id},
                 include: [{model: DeviceInfo, as:'info'}]
             },
         )

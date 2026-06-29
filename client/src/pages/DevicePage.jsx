@@ -7,6 +7,7 @@ import { Star, ShoppingCart, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { BASKET_ROUTE, LOGIN_ROUTE } from "../utils/consts"
+import { productImg } from "../utils/image"
 
 const DevicePage = observer(() => {
   const [device, setDevice] = useState({ info: [] })
@@ -35,7 +36,7 @@ const DevicePage = observer(() => {
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         <div className="overflow-hidden rounded-xl border bg-muted">
           <img
-            src={`${import.meta.env.VITE_API_URL}/static/${device.img}`}
+            src={productImg(device.img)}
             alt={device.name}
             className="aspect-square w-full object-cover"
             onError={(e) => { e.currentTarget.style.opacity = 0.3 }}

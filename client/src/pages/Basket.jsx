@@ -8,6 +8,7 @@ import { Loader2, Minus, Plus, Trash2, ShoppingCart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { SHOP_ROUTE } from "../utils/consts"
+import { productImg } from "../utils/image"
 
 const Basket = observer(() => {
   const { basket } = useContext(Context)
@@ -71,7 +72,7 @@ const Basket = observer(() => {
               <Card key={item.id}>
                 <CardContent className="flex items-center gap-4 p-4">
                   <img
-                    src={`${import.meta.env.VITE_API_URL}/static/${item.device.img}`}
+                    src={productImg(item.device.img)}
                     alt={item.device.name}
                     className="h-20 w-20 shrink-0 rounded-md border object-cover"
                   />

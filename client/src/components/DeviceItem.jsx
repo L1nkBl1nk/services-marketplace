@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom"
 import { Star } from "lucide-react"
 import { DEVICE_ROUTE } from "../utils/consts"
+import { productImg } from "../utils/image"
 
 const DeviceItem = ({ device }) => {
   const navigate = useNavigate()
@@ -12,7 +13,7 @@ const DeviceItem = ({ device }) => {
     >
       <div className="aspect-square overflow-hidden bg-muted">
         <img
-          src={`${import.meta.env.VITE_API_URL}/static/${device.img}`}
+          src={productImg(device.img)}
           alt={device.name}
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           onError={(e) => { e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='100%25' height='100%25' fill='%23f4f4f5'/%3E%3C/svg%3E" }}
